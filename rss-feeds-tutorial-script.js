@@ -1,5 +1,8 @@
 const Parser = require('rss-parser');
-const parser = new Parser();
+const parser = new Parser({
+  timeout: 10000,
+  headers: {'User-Agent': 'rss-parser'}
+});
 
 const RSS_FEEDS = {
   'BBC News': 'http://feeds.bbci.co.uk/news/rss.xml',
@@ -84,17 +87,25 @@ function filterByKeyword(articles, keyword) {
 
 // Main execution
 (async () => {
-  // Fetch all feeds
-  const allArticles = await fetchAllFeeds(RSS_FEEDS);
+  try {
+    // Fetch all feeds
+    const allArticles = await fetchAllFeeds(RSS_FEEDS);
 
-  // Sort by date
-  const sortedArticles = sortByDate(allArticles);
+    // Sort by date
+    const sortedArticles = sortByDate(allArticles);
 
-  // Display all
-  displayArticles(sortedArticles, 15);
+    // Display all
+    displayArticles(sortedArticles, 15);
 
-  // Example: Filter for artificial intelligence related news
-  const aiNews = filterByKeyword(sortedArticles, 'artificial intelligence');
-  console.log(`\nFiltered for "artificial intelligence": ${aiNews.length} articles found`);
-  displayArticles(aiNews, 5);
+    // Example: Filter for artificial intelligence related news
+    const aiNews = filterByKeyword(sortedArticles, 'artificial intelligence');
+    console.log(`\nFiltered for "artificial intelligence": ${aiNews.length} articles found`);
+    displayArticles(aiNews, 5);
+
+    // Exit explicitly since rss-parser keeps event loop alive
+    setTimeout(() => process.exit(0), 100);
+  } catch (error) {
+    console.error('Error:', error.message);
+    process.exit(1);
+  }
 })();
